@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="~{general/fragmentos :: head}"></head>
+    <body>
+
+        <!-- Fragmento agregar: botón + modal para registrar una nueva suculenta. -->
+        <section th:fragment="agregar">
+            <div class="row py-4 mb-2 bg-light">
+                <div class="col-md-1"></div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-success"
+                            data-bs-toggle="modal" data-bs-target="#agregarSuculentaModal">
+                        <i class="fa-solid fa-plus"></i> [[#{suculenta.agregar}]]</button>
+                </div>
+            </div>
+            <div class="modal fade" id="agregarSuculentaModal" tabindex="-1"
+                 aria-labelledby="agregarModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-success text-white">
+                            <h1 class="modal-title fs-5" id="agregarModalLabel">
+                                <i class="fa-solid fa-seedling"></i> [[#{suculenta.agregar}]]</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <form th:action="@{/suculenta/guardar}" th:object="${suculenta}"
+                              class="was-validated" enctype="multipart/form-data" method="post">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label>[[#{suculenta.nombreComun}]]</label>
+                                    <input type="text" name="nombreComun" class="form-control" required="true"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label>[[#{suculenta.nombreCientifico}]]</label>
+                                    <input type="text" name="nombreCientifico" class="form-control" required="true"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label>[[#{suculenta.familia}]]</label>
+                                    <input type="text" name="familia" class="form-control"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label>[[#{suculenta.colorPrincipal}]]</label>
+                                    <input type="text" name="colorPrincipal" class="form-control"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label>[[#{suculenta.alturaCm}]]</label>
+                                    <input type="number" step="0.01" min="0" name="alturaCm" class="form-control"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label>[[#{suculenta.precioEstimado}]]</label>
+                                    <input type="number" step="0.01" min="0" name="precioEstimado" class="form-control"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label>[[#{suculenta.nivelRiego}]]</label>
+                                    <input type="text" name="nivelRiego" class="form-control"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label>[[#{suculenta.activo}]]</label>
+                                    <input type="checkbox" name="activo" class="form-check-input"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label>[[#{suculenta.imagen}]]</label>
+                                    <input type="file" name="imagenFile" onchange="mostrarImagen(this);" class="form-control"/>
+                                    <img id="blah" src="#" alt="imagen de suculenta" height="200"/>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fa-solid fa-xmark"></i> [[#{accion.cerrar}]]</button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa-solid fa-floppy-disk"></i> [[#{accion.guardar}]]</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fragmento listado: tabla con las suculentas registradas. -->
+        <section th:fragment="listado" class="p-3">
+            <div class="row p-3">
+                <div class="col-md-9">
+                    <div class="card p-2">
+                        <div class="card-header"><h4>[[#{suculenta.listado}]]</h4></div>
+                        <div class="card-body">
+                            <div th:if="${suculentas != null and !suculentas.empty}">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>[[#{suculenta.imagen}]]</th>
+                                            <th>[[#{suculenta.nombreComun}]]</th>
+                                            <th>[[#{suculenta.nombreCientifico}]]</th>
+                                            <th>[[#{suculenta.familia}]]</th>
+                                            <th>[[#{suculenta.alturaCm}]]</th>
+                                            <th>[[#{suculenta.precioEstimado}]]</th>
+                                            <th>[[#{suculenta.activo}]]</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="s : ${suculentas}">
+                                            <td>[[${s.idSuculenta}]]</td>
+                                            <td><img th:src="@{${s.rutaImagen}}" alt="sin imagen" height="60"/></td>
+                                            <td>[[${s.nombreComun}]]</td>
+                                            <td><em>[[${s.nombreCientifico}]]</em></td>
+                                            <td>[[${s.familia}]]</td>
+                                            <td>[[${s.alturaCm}]]</td>
+                                            <td>[[${#numbers.formatCurrency(s.precioEstimado)}]]</td>
+                                            <td th:text="${s.activo} ? 'Activa' : 'Inactiva'"></td>
+                                            <td>
+                                                <button type="button" class="btn btn-danger"
+                                                        data-bs-toggle="modal" data-bs-target="#confirmModal"
+                                                        th:data-bs-id="${s.idSuculenta}"
+                                                        th:data-bs-descripcion="${s.nombreComun}">
+                                                    <i class="fa-solid fa-trash"></i> [[#{accion.eliminar}]]
+                                                </button>
+                                                <a th:href="@{/suculenta/modificar/}+${s.idSuculenta}" class="btn btn-warning">
+                                                    <i class="fas fa-pencil-alt"></i> [[#{accion.actualizar}]]
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center p-2" th:if="${suculentas == null or suculentas.empty}">
+                                <span>[[#{lista.vacia}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-success text-white mb-3">
+                        <div class="card-body">
+                            <h3>[[#{suculenta.total}]]</h3>
+                            <h4 class="fs-2"><i class="fas fa-seedling"></i> [[${totalSuculentas}]]</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fragmento editar: formulario de modificación (usado en modifica.html). -->
+        <section th:fragment="editar">
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="col-md-8">
+                    <form method="POST" th:action="@{/suculenta/guardar}"
+                          th:object="${suculenta}" class="was-validated" enctype="multipart/form-data">
+                        <input type="hidden" name="idSuculenta" th:field="*{idSuculenta}"/>
+                        <input type="hidden" name="rutaImagen" th:field="*{rutaImagen}"/>
+                        <div class="row py-4 mb-4 bg-light">
+                            <div class="col-md-4 d-grid">
+                                <a th:href="@{/suculenta/listado}" class="btn btn-primary">
+                                    <i class="fas fa-arrow-left"></i> [[#{accion.regresar}]]</a>
+                            </div>
+                            <div class="col-md-4 d-grid">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check"></i> [[#{accion.guardar}]]</button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header"><h4>[[#{accion.actualizar}]]</h4></div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label>[[#{suculenta.nombreComun}]]</label>
+                                            <input type="text" class="form-control" name="nombreComun"
+                                                   th:field="*{nombreComun}" required="true"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>[[#{suculenta.nombreCientifico}]]</label>
+                                            <input type="text" class="form-control" name="nombreCientifico"
+                                                   th:field="*{nombreCientifico}" required="true"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>[[#{suculenta.familia}]]</label>
+                                            <input type="text" class="form-control" name="familia" th:field="*{familia}"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>[[#{suculenta.colorPrincipal}]]</label>
+                                            <input type="text" class="form-control" name="colorPrincipal" th:field="*{colorPrincipal}"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>[[#{suculenta.alturaCm}]]</label>
+                                            <input type="number" step="0.01" min="0" class="form-control" name="alturaCm" th:field="*{alturaCm}"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>[[#{suculenta.precioEstimado}]]</label>
+                                            <input type="number" step="0.01" min="0" class="form-control" name="precioEstimado" th:field="*{precioEstimado}"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>[[#{suculenta.nivelRiego}]]</label>
+                                            <input type="text" class="form-control" name="nivelRiego" th:field="*{nivelRiego}"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>[[#{suculenta.activo}]]</label>
+                                            <input class="form-check-input" type="checkbox" name="activo" th:field="*{activo}"/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>[[#{suculenta.imagen}]]</label>
+                                            <input class="form-control" type="file" name="imagenFile" onchange="mostrarImagen(this);"/>
+                                            <img id="blah" th:src="@{${suculenta.rutaImagen}}" alt="imagen de suculenta" height="200"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fragmento confirmarEliminar: modal de confirmación de borrado. -->
+        <section th:fragment="confirmarEliminar">
+            <div class="modal fade" id="confirmModal" tabindex="-1"
+                 aria-labelledby="modalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form th:action="@{/suculenta/eliminar}" method="post">
+                            <input type="hidden" name="idSuculenta" id="modalId"/>
+                            <div class="modal-header bg-warning text-white">
+                                <h5 class="modal-title" id="modalLabel">
+                                    <i class="fa-solid fa-circle-radiation"></i> [[#{accion.confirmar}]]
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>[[#{accion.confirmar.texto1}]] <span id="modalDescripcion"></span>?</p>
+                                <h6>[[#{accion.confirmar.texto2}]]</h6>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fa-solid fa-trash"></i> [[#{accion.eliminar}]]
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fa-solid fa-xmark"></i> [[#{accion.cerrar}]]
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </body>
+</html>
